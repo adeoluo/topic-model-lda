@@ -20,7 +20,7 @@
 Topic models discover the themes running through a collection of documents without any
 labels. Latent Dirichlet allocation is the canonical one: it treats each document as a
 mixture of topics and each topic as a distribution over words, and infers both from the text
-alone. This project implements LDA **from first principles** using **collapsed Gibbs
+alone. This project implements LDA **from scratch** using **collapsed Gibbs
 sampling**, with **zero runtime dependencies** and a deterministic, offline test suite. The
 only inference primitive is sampling a token's topic from its full conditional.
 
