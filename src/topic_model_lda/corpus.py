@@ -6,14 +6,19 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-_TOKEN = re.compile(r"[a-z]+")
+_TOKEN = re.compile(r"\w+", re.UNICODE)
 _STOPWORDS = frozenset(
     {"the", "a", "an", "and", "or", "of", "to", "in", "is", "are", "was", "it", "this", "that"}
 )
 
 
 def tokenize(text: str) -> list[str]:
-    """Lowercase, split into words, and drop short stopwords."""
+    """Lowercase, split into words, and drop short stopwords.
+
+    A word token is a run of word characters (Unicode letters, digits, and
+    underscore). Using ``\\w`` rather than ``[a-z]`` keeps accented text, non-Latin
+    scripts, digits, and underscored tokens instead of silently dropping them.
+    """
     return [token for token in _TOKEN.findall(text.lower()) if token not in _STOPWORDS]
 
 

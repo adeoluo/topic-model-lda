@@ -41,6 +41,18 @@ def test_infer_rejects_empty() -> None:
     assert status == 400
 
 
+def test_infer_long_document_stays_normalized() -> None:
+    # Regression: multiplying per-token factors below 1 underflowed to 0.0 for
+    # long documents, producing an all-zero distribution. Log-space scoring keeps
+    # the distribution normalized regardless of length.
+    long_text = " ".join((list(_SERVICE.corpus.vocabulary)[:6]) * 85)
+    status, payload = handle("POST", "/infer", {"text": long_text}, _SERVICE)
+    assert status == 200
+    distribution = payload["topic_distribution"]
+    assert abs(sum(distribution) - 1.0) < 1e-6
+    assert any(value > 0.0 for value in distribution)
+
+
 def test_metrics_and_unknown_route() -> None:
     service = TopicService.trained(iterations=120)
     handle("POST", "/infer", {"text": "stock market invest"}, service)

@@ -17,6 +17,7 @@ Endpoints
 from __future__ import annotations
 
 import json
+import math
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -65,19 +66,24 @@ class TopicService:
         }
 
     def infer(self, text: str) -> JsonObject:
-        # Infer by scoring the document's words against each topic's word distribution.
+        # Score the document's words against each topic's word distribution. The
+        # per-token factors are well below 1, so multiplying them directly
+        # underflows to 0.0 for long documents and collapses the distribution.
+        # Accumulate in log space and normalize with log-sum-exp instead.
         index = {word: position for position, word in enumerate(self.corpus.vocabulary)}
         counts = self.model.topic_word_counts
         totals = [sum(row) + 1 for row in counts]
-        scores = [1.0 for _ in range(self.num_topics)]
+        log_scores = [0.0 for _ in range(self.num_topics)]
         for token in tokenize(text):
             if token not in index:
                 continue
             word = index[token]
             for topic in range(self.num_topics):
-                scores[topic] *= (counts[topic][word] + 0.01) / totals[topic]
-        total = sum(scores) or 1.0
-        distribution = [score / total for score in scores]
+                log_scores[topic] += math.log((counts[topic][word] + 0.01) / totals[topic])
+        highest = max(log_scores)
+        weights = [math.exp(value - highest) for value in log_scores]
+        total = sum(weights) or 1.0
+        distribution = [weight / total for weight in weights]
         return {
             "text": text,
             "topic_distribution": [round(value, 6) for value in distribution],
