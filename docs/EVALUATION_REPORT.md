@@ -1,34 +1,32 @@
-# Evaluation Report - Topic Model Lda
+# Evaluation Report - Topic Model (LDA)
 
-> Reproduce everything here with `make evaluation`. Report mean ± 95% confidence interval over N seeds.
+> Reproduce with `python -m topic_model_lda evaluate` and `topics`. Deterministic and offline.
 
 ## Setup
-- **Task / dataset:** name, size, split.
-- **Metrics:** definition of each metric and why it's the right one.
-- **Graders:** exact-match / model-graded (which model, prompt) / human.
-- **Baselines:** what you compare against.
-- **Seeds:** list. **Hardware:** e.g., 1×A100 80GB. **Cost:** $X. **Runtime:** Yh.
 
-## Headline results
+- **Collection:** 60 documents drawn from three latent themes (space, cooking, finance).
+- **Model:** LDA with three topics, trained by 250 Gibbs iterations.
+- **Metric:** UMass topic coherence, computed from the training documents; higher is better.
 
-| Metric | This project | Baseline | SOTA / ref | Δ vs baseline |
-|---|---:|---:|---:|---:|
-| Primary (↑) | **0.00 ± 0.00** | 0.00 | 0.00 | +0.00 |
-| Latency p95 (ms, ↓) | **0** | 0 | - | - |
-| Cost / 1k ($, ↓) | **0.00** | 0.00 | - | - |
+## Results
 
-## Ablations
+The three discovered topics are each dominated by one theme:
 
-| Variant | Metric | Δ | Notes |
-|---|---:|---:|---|
-| Full | 0.00 | - | reference |
-| - component X | 0.00 | −0.00 | shows X matters |
+```
+topic 0: rocket, orbit, mission, satellite, planet, launch
+topic 1: bake, flour, oven, sauce, dish, recipe
+topic 2: portfolio, price, trade, bank, stock, profit
+```
 
-## LLM-as-judge validation (if used)
-- Agreement with human labels (Cohen's κ / accuracy), bias controls, sample size.
+Mean UMass coherence is about -2.98 (UMass is non-positive; closer to zero is better).
 
-## Error analysis
-- Top failure categories with counts and representative examples.
+## Interpretation
+
+With no labels, collapsed Gibbs sampling recovers the three latent themes as distinct topics
+whose top words are semantically coherent. Every theme becomes its own topic and no topic mixes
+themes, confirming that the from-scratch sampler learned the document-topic and topic-word
+structure. The coherence score quantifies that the top words genuinely co-occur.
 
 ## Reproducibility
-- Exact command, configuration hash, dataset version, W&B/MLflow run URL.
+
+Sampling is seeded; the topics and coherence regenerate exactly.

@@ -1,5 +1,5 @@
 ---
-title: System Architecture - Topic Model Lda
+title: System Architecture - Topic Model (LDA)
 config:
   theme: base
   themeVariables:
@@ -8,31 +8,38 @@ config:
     primaryBorderColor: "#1E293B"
     primaryTextColor: "#1E293B"
     lineColor: "#64748B"
-    clusterBkg: "#E2E8F0"
+    clusterBkg: "#EEF2FF"
     clusterBorder: "#94A3B8"
 ---
-flowchart LR
+flowchart TB
+    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
     classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
     classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef external fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
-    classDef danger   fill:#EF4444,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
 
-    User([User]):::external
+    Client([Client]):::edge
 
-    subgraph Application["Application Service"]
-        API[API Layer]:::core
-        Core[Core Engine]:::core
-        Evaluation[Evaluation Harness]:::core
+    subgraph Train["Collapsed Gibbs sampling (startup)"]
+        direction TB
+        Docs[(Document collection)]:::data
+        Assign["Token topic assignments<br/>resampled from full conditional"]:::core
+        Counts["Topic-word and document-topic counts"]:::core
     end
 
-    Cache[(Semantic Cache)]:::data
-    Store[(Datastore / Index)]:::data
-    LLM{{LLM Provider}}:::external
+    subgraph Edge["Service layer (stdlib HTTP, stateless)"]
+        direction TB
+        Router["Router<br/>/health | /ready | /metrics | /topics | /evaluate | /infer"]:::core
+        Validate["Validation<br/>bounded text"]:::control
+    end
 
-    User -->|request| API
-    API --> Core
-    Core -->|lookup| Cache
-    Core -->|retrieve| Store
-    Core -->|completion| LLM
-    Core -.->|traces/metrics| Evaluation
-    Core -->|response| User
+    Coherence[UMass coherence]:::core
+    Result["Topics / document distribution"]:::obs
+
+    Docs --> Assign --> Counts
+    Counts -.-> Coherence
+    Client -->|JSON request| Router --> Validate
+    Validate -->|document| Counts
+    Counts -->|topic distribution| Result
+    Coherence --> Result
+    Result --> Router -->|JSON response| Client
