@@ -1,22 +1,18 @@
-# Data Card - Topic Model Lda
+# Data Card - Topic Model (LDA)
 
-## Sources & provenance
-- Where each dataset came from (links), collection method, dates.
+The project bundles one small, synthetic document collection. There is no external data and
+nothing is downloaded.
 
-## Licensing
-- License of each source and whether usage complies. Redistribution terms.
+## bundled collection (`src/topic_model_lda/data.py`)
 
-## Composition
-- Size, format, fields, language(s), modality.
-
-## Preprocessing & filtering
-- Cleaning, dedup, PII handling, filtering rules.
-
-## Contamination checks
-- How you ensured evaluation data is not in training / few-shot context.
-
-## Known biases & gaps
-- Representation gaps, label noise, sampling bias.
+- **Provenance:** generated for this project. Each document samples words from one of three
+  themes (space, cooking, finance), so the latent structure is known.
+- **Why this shape:** it makes topic recovery checkable - a good model should recover the three
+  themes as distinct topics - and makes coherence meaningful.
+- **Licensing:** authored by this repository; MIT.
+- **Known gaps:** small, synthetic, three clean themes; real collections are noisier.
 
 ## Ethical considerations
-- Consent, sensitive content, privacy.
+
+The collection is synthetic with neutral general-interest vocabulary; no personal or sensitive
+content.
