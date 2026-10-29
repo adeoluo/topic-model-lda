@@ -1,21 +1,24 @@
-# Threat Model - Topic Model Lda
+# Threat Model - Topic Model (LDA)
 
 ## Assets
-- What's worth protecting (data, keys, model, user trust, budget).
+
+- Integrity of the learned topics and the inferred document distributions.
 
 ## Trust boundaries
-- Where untrusted input crosses into the system (reference the architecture diagram).
 
-## Threats (STRIDE + LLM-specific)
+- **Document text is untrusted input to the service.** It is tokenized and scored, never
+  executed, and length-bounded.
+
+## Threats and mitigations
 
 | Threat | Vector | Impact | Mitigation |
 |---|---|---|---|
-| Prompt injection | Untrusted content in context / tools | Data exfiltration, unsafe actions | Input/output filtering, tool allow-list, least privilege |
-| Jailbreak | Adversarial user prompt | Policy bypass | System-prompt hardening, output classifier, refusal evaluation |
-| Data exfiltration | Model echoes secrets / PII | Privacy breach | Secret scanning, output redaction, no secrets in context |
-| Excessive cost | Unbounded loops / large inputs | $ blowout | Token/step budgets, rate limits, timeouts |
-| Tool abuse | Agent calls dangerous tool | Destructive action | Approval gates, sandboxing, dry-run |
-| Supply chain | Malicious dependency | Code execution | Pinned dependencies, Dependabot, SBOM |
+| Unbounded computation | Very long document | Resource use | Text length-bounded |
+| Irreproducible training | Unseeded sampling | Flaky topics | Deterministic, seeded Gibbs sampling |
+| Misleading topics | Noisy or tiny corpus | Incoherent topics | Coherence is reported, not hidden |
+| Supply-chain compromise | Malicious dependency | Code execution | Zero runtime dependencies; Dependabot and CodeQL in continuous integration |
 
 ## Residual risk
-- What remains after mitigations and why it's acceptable.
+
+Topic quality depends on the corpus and the chosen topic count; poor choices yield incoherent
+topics, which the coherence metric surfaces rather than hides.

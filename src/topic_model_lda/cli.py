@@ -31,6 +31,12 @@ def _cmd_evaluate(args: argparse.Namespace) -> None:
     print(report.format())
 
 
+def _cmd_serve(args: argparse.Namespace) -> None:
+    from topic_model_lda.service import serve
+
+    serve(host=args.host, port=args.port)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="topic-model-lda", description=__doc__)
     parser.add_argument("--topics", type=int, default=3)
@@ -43,7 +49,11 @@ def main(argv: list[str] | None = None) -> None:
 
     sub.add_parser("evaluate", help="mean topic coherence of the discovered topics")
 
-    handlers = {"topics": _cmd_topics, "evaluate": _cmd_evaluate}
+    serve = sub.add_parser("serve", help="start the HTTP topic service")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8000)
+
+    handlers = {"topics": _cmd_topics, "evaluate": _cmd_evaluate, "serve": _cmd_serve}
     args = parser.parse_args(argv)
     handlers[args.command](args)
 
