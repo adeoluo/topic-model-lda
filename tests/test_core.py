@@ -19,6 +19,16 @@ def test_tokenize_drops_stopwords() -> None:
     assert tokenize("The rocket is in orbit") == ["rocket", "orbit"]
 
 
+def test_tokenize_preserves_unicode_digits_underscores() -> None:
+    # Regression: [a-z]+ silently dropped accents, scripts, digits, underscores.
+    assert tokenize("café covid19 rocket_launch 東京") == [
+        "café",
+        "covid19",
+        "rocket_launch",
+        "東京",
+    ]
+
+
 def test_corpus_indexing() -> None:
     corpus = Corpus.from_texts(["rocket orbit", "stock market"])
     assert corpus.num_documents == 2
