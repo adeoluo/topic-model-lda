@@ -64,6 +64,27 @@ Each discovered topic is dominated by a single theme, and every theme is recover
 separate topic - with no supervision. Topic coherence is reported by
 `python -m topic_model_lda evaluate` (UMass; higher, closer to zero, is better).
 
+### Scale
+
+`benchmarks/scale.py` runs collapsed Gibbs sampling over progressively larger synthetic
+document collections at a fixed iteration count and records wall-clock time, training
+throughput, peak memory (`tracemalloc`), and mean UMass coherence. Timing is measured without
+tracemalloc (which slows every allocation); peak memory is traced separately around the corpus,
+model construction, and a single sweep, which is faithful because the token assignments and
+count matrices are allocated up front and reused each iteration. Throughput is roughly flat near
+165 to 270 documents per second, peak memory grows linearly, and coherence stays stable as the
+corpus grows. Run with `uv run python benchmarks/scale.py`.
+
+| Documents | Seconds | Throughput (docs/sec) | Peak memory (MiB) | Coherence (UMass) |
+|---:|---:|---:|---:|---:|
+| 200 | 0.73 | 272.5 | 0.19 | -3.890 |
+| 400 | 1.66 | 240.8 | 0.37 | -3.899 |
+| 800 | 4.85 | 165.0 | 0.73 | -4.242 |
+| 1600 | 6.39 | 250.5 | 1.46 | -4.286 |
+
+Honest caveat: the documents are synthetic with three clear themes, and this pure-Python
+implementation is not benchmarked against compiled topic-model libraries.
+
 ## Quickstart
 
 ```bash
