@@ -4,14 +4,13 @@ All notable changes to this project are documented here. The file is generated
 from Conventional Commits by [git-cliff](https://git-cliff.org) when a release is cut
 with `make cut-release`.
 
-## Unreleased
+## [0.1.0] 2026-11-02
 
 ### Features
 
 - Add LDA collapsed Gibbs sampler, coherence evaluation, and CLI
 - Add HTTP service with observability, benchmarks, and documentation
-- **rust:** Gibbs sampler that reproduces the Python sampler exactly
-- **lda:** Optional Rust backend with parity tests in CI
+- Rust Gibbs sampler with exact parity, and a C4 benchmark against gensim (#3)
 
 ### Bug fixes
 
@@ -25,7 +24,6 @@ with `make cut-release`.
 - Compact horizontal architecture diagram
 - Recorded demos of more commands, with their vhs tapes (#1)
 - Recorded demos of the HTTP service and more commands (#2)
-- C4 benchmark against gensim, Rust core design note
 
 ### Build and CI
 
