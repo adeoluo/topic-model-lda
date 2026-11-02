@@ -70,5 +70,5 @@ def test_auto_prefers_rust_and_missing_extension(monkeypatch: pytest.MonkeyPatch
     assert LDA(corpus, LDAConfig()).backend == "rust"
     monkeypatch.setattr(lda_module, "_EXTENSION", None)
     assert LDA(corpus, LDAConfig()).backend == "python"
-    with pytest.raises(RuntimeError, match="not installed"):
+    with pytest.raises(RuntimeError, match="not built"):
         LDA(corpus, LDAConfig(backend="rust"))

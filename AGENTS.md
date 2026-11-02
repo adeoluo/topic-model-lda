@@ -13,6 +13,7 @@ Latent Dirichlet allocation, built from scratch: collapsed Gibbs sampling for to
 - `docker-compose.yml`: local container setup
 - `docs/`: documentation, architecture diagram source and render, design records
 - `rust/`: Rust core compiled into a Python extension with PyO3
+- `scripts/`: maintenance scripts (release, assets, data)
 - `src/`: library and service source
 - `tests/`: test suite
 
@@ -43,9 +44,9 @@ Key modules:
 | `make test` | Run tests |
 | `make coverage` | Tests with coverage gate |
 | `make rust-check` | Rust core: fmt, clippy (with and without Python), unit tests |
-| `make rust-develop` | Build the Rust extension into .venv (opt-in rust group) |
-| `make parity` | Rust vs Python parity tests (requires rust-develop) |
-| `make bench-compare` | Python vs Rust training speed and a large real-text run (requires rust-develop) |
+| `make rust-develop` | Rebuild the Rust core into .venv after editing rust/ (uv sync also builds it) |
+| `make parity` | Rust vs Python parity tests |
+| `make bench-compare` | Python vs Rust training speed and a large real-text run |
 | `make evaluation` | Reproduce the results table |
 | `make run` | Run the application entrypoint |
 | `make diagram` | Render architecture diagram to SVG |

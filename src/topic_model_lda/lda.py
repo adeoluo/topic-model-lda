@@ -27,10 +27,13 @@ from topic_model_lda.corpus import Corpus
 
 
 def _load_extension() -> Any:
-    try:
-        return importlib.import_module("topic_model_lda_rs")
-    except ImportError:
-        return None
+    # Inside the package for normal installs; top level for an older `maturin develop`.
+    for name in ("topic_model_lda.topic_model_lda_rs", "topic_model_lda_rs"):
+        try:
+            return importlib.import_module(name)
+        except ImportError:
+            continue
+    return None
 
 
 _EXTENSION: Any = _load_extension()
@@ -38,7 +41,7 @@ BACKENDS = ("auto", "python", "rust")
 
 
 def rust_available() -> bool:
-    """Return whether the optional Rust sampler is installed."""
+    """Return whether the Rust sampler (compiled into the package on install) is present."""
     return _EXTENSION is not None
 
 
@@ -74,7 +77,9 @@ class LDA:
         self._config = config
         self._rust: Any = None
         if config.backend == "rust" and _EXTENSION is None:
-            raise RuntimeError("the Rust backend is not installed; run `make rust-develop`")
+            raise RuntimeError(
+                "the Rust backend is not built; run `uv sync` or `make rust-develop`"
+            )
         if config.backend != "python" and _EXTENSION is not None:
             # The Rust sampler draws the same random stream and totals weights the
             # way this interpreter's sum() does, so its assignments are identical.

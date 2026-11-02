@@ -10,7 +10,6 @@
    UMass function, so time and coherence are directly comparable.
 
     curl -LO https://huggingface.co/datasets/allenai/c4/resolve/main/en/c4-train.00000-of-01024.json.gz
-    make rust-develop
     uv run --no-sync python benchmarks/compare_backends.py --c4 c4-train.00000-of-01024.json.gz
     uv run --no-sync --with gensim python benchmarks/compare_backends.py --c4 ... --gensim
 """
@@ -126,7 +125,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=ROOT / "benchmarks" / "results.json")
     args = ap.parse_args()
     if not rust_available():
-        raise SystemExit("build the extension first: make rust-develop")
+        raise SystemExit("build the Rust core first: uv sync (or make rust-develop)")
 
     report: dict[str, object] = {
         "machine": f"{platform.machine()} {platform.system()}",

@@ -77,13 +77,13 @@ separate topic - with no supervision. Topic coherence is reported by
 
 ### Real web text (C4) and the Rust core
 
-> Reproduce with `make rust-develop`, download one C4 shard
+> Reproduce: download one C4 shard
 > (`https://huggingface.co/datasets/allenai/c4/resolve/main/en/c4-train.00000-of-01024.json.gz`),
 > then `uv run --no-sync --with gensim python benchmarks/compare_backends.py --c4 <shard> --gensim`.
 > Apple M1, 8 cores. Documents are the first C4 English documents, truncated to 300 words, with
 > rare and near-universal words pruned. Raw numbers: [benchmarks/results.json](benchmarks/results.json).
 
-The optional Rust core draws from a port of CPython's Mersenne Twister and totals the weights the
+The Rust core, compiled into the package on install and used by default, draws from a port of CPython's Mersenne Twister and totals the weights the
 way the running interpreter's `sum()` does, so it produces the same topic assignments as the Python
 sampler, token for token. The parity tests check this in CI.
 
@@ -158,7 +158,7 @@ implementation is not benchmarked against compiled topic-model libraries.
 
 ```bash
 git clone https://github.com/adeoluo/topic-model-lda.git && cd topic-model-lda
-make setup                    # install dev tooling + pre-commit hooks
+make setup                    # install (compiles the Rust core; needs a Rust toolchain) + hooks
 make all                      # lint + type-check + test
 
 python -m topic_model_lda topics                  # top words of each discovered topic
@@ -260,8 +260,11 @@ CodeQL runs in `codeql.yml`.
 ## Limitations
 
 - The number of topics is a hyperparameter, not inferred; nonparametric variants learn it.
-- The Python sampler is interpreted and suited to modest collections; the Rust core is 37x
-  faster but still single threaded, and multicore gensim reaches better coherence on C4.
+- Installing from source compiles the Rust core, so it needs a Rust toolchain. `LDAConfig`
+  uses it by default (`backend="auto"`); `backend="python"` selects the reference sampler,
+  which is 37x slower.
+- The Rust sampler is single threaded, to keep its exact reproduction of the Python sampler,
+  and multicore gensim reaches better coherence on C4.
 - The bundled documents are synthetic with clear themes; real text is messier.
 
 ## Roadmap
