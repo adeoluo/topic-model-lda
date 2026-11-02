@@ -16,11 +16,30 @@ topic-word and document-topic distributions.
 
 from __future__ import annotations
 
+import importlib
 import random
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from topic_model_lda.corpus import Corpus
+
+
+def _load_extension() -> Any:
+    try:
+        return importlib.import_module("topic_model_lda_rs")
+    except ImportError:
+        return None
+
+
+_EXTENSION: Any = _load_extension()
+BACKENDS = ("auto", "python", "rust")
+
+
+def rust_available() -> bool:
+    """Return whether the optional Rust sampler is installed."""
+    return _EXTENSION is not None
 
 
 @dataclass(frozen=True)
@@ -32,6 +51,7 @@ class LDAConfig:
     beta: float = 0.01
     iterations: int = 200
     seed: int = 0
+    backend: str = "auto"
 
     def __post_init__(self) -> None:
         if self.num_topics < 2:
@@ -40,6 +60,10 @@ class LDAConfig:
             raise ValueError("alpha and beta must be positive")
         if self.iterations < 1:
             raise ValueError("iterations must be at least 1")
+        if self.backend not in BACKENDS:
+            raise ValueError(f"unknown backend {self.backend!r}; expected one of {BACKENDS}")
+        if self.seed < 0:
+            raise ValueError("seed must be non-negative")
 
 
 class LDA:
@@ -48,6 +72,23 @@ class LDA:
     def __init__(self, corpus: Corpus, config: LDAConfig) -> None:
         self._corpus = corpus
         self._config = config
+        self._rust: Any = None
+        if config.backend == "rust" and _EXTENSION is None:
+            raise RuntimeError("the Rust backend is not installed; run `make rust-develop`")
+        if config.backend != "python" and _EXTENSION is not None:
+            # The Rust sampler draws the same random stream and totals weights the
+            # way this interpreter's sum() does, so its assignments are identical.
+            self._rust = _EXTENSION.Sampler(
+                [list(document) for document in corpus.documents],
+                corpus.vocabulary_size,
+                config.num_topics,
+                config.alpha,
+                config.beta,
+                config.seed,
+                sys.version_info >= (3, 12),
+            )
+            self._pull_counts()
+            return
         self._rng = random.Random(config.seed)
         k = config.num_topics
         v = corpus.vocabulary_size
@@ -66,10 +107,35 @@ class LDA:
                 self._doc_topic[doc_index][topic] += 1
             self._assignments.append(doc_assignments)
 
+    @property
+    def backend(self) -> str:
+        """The implementation in use: ``"rust"`` or ``"python"``."""
+        return "rust" if self._rust is not None else "python"
+
     def train(self) -> None:
         """Run collapsed Gibbs sampling for the configured number of iterations."""
+        if self._rust is not None:
+            self._rust.sweep(self._config.iterations)
+            self._pull_counts()
+            return
         for _ in range(self._config.iterations):
             self._sweep()
+
+    def _pull_counts(self) -> None:
+        k, v = self._config.num_topics, self._corpus.vocabulary_size
+        flat_tw = self._rust.topic_word()
+        flat_dt = self._rust.doc_topic()
+        self._topic_word = [list(flat_tw[t * v : (t + 1) * v]) for t in range(k)]
+        self._topic_total = list(self._rust.topic_total())
+        self._doc_topic = [
+            list(flat_dt[d * k : (d + 1) * k]) for d in range(self._corpus.num_documents)
+        ]
+        self._assignments = [list(row) for row in self._rust.assignments()]
+
+    @property
+    def assignments(self) -> list[list[int]]:
+        """The current topic of every token, per document."""
+        return [list(row) for row in self._assignments]
 
     def _sweep(self) -> None:
         k = self._config.num_topics
