@@ -5,12 +5,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/adeoluo/topic-model-lda/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/adeoluo/topic-model-lda/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Coverage" src="https://img.shields.io/badge/coverage-85%25-brightgreen">
+  <a href="https://github.com/adeoluo/topic-model-lda/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/adeoluo/topic-model-lda/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/adeoluo/topic-model-lda/releases"><img alt="Release" src="https://img.shields.io/github/v/release/adeoluo/topic-model-lda"></a>
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12-blue">
-  <img alt="Type checked" src="https://img.shields.io/badge/mypy-strict-blue">
-  <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20deps-0-brightgreen">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
 ---
@@ -21,13 +19,13 @@ Topic models discover the themes running through a collection of documents witho
 labels. Latent Dirichlet allocation is the canonical one: it treats each document as a
 mixture of topics and each topic as a distribution over words, and infers both from the text
 alone. This project implements LDA **from scratch** using **collapsed Gibbs
-sampling**, with **zero runtime dependencies** and a deterministic, offline test suite. The
+sampling**, with a deterministic, offline test suite. The
 only inference primitive is sampling a token's topic from its full conditional.
 
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture/architecture.svg" alt="System architecture" width="900">
+  <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
 Every word token starts with a random topic. Collapsed Gibbs sampling repeatedly resamples
@@ -35,7 +33,7 @@ each token's topic from its full conditional, which depends only on the current 
 and document-topic counts. After convergence those counts give the topics and the per-document
 topic mixtures. See the [ADRs](docs/adr/) for the key decisions.
 
-## How collapsed Gibbs sampling works
+### How collapsed Gibbs sampling works
 
 The topic-word and document-topic distributions are integrated out analytically, so sampling
 needs only integer counts. Each token's topic is resampled with probability
@@ -48,6 +46,13 @@ p(topic = k | ...) proportional to
 where `n_dk` is topic `k`'s count in document `d`, `n_kw` is word `w`'s count in topic `k`,
 and `n_k` is topic `k`'s total. The first factor pulls a token toward topics already common
 in its document; the second toward topics where its word is already common.
+
+### Components
+
+- **corpus** - tokenization with stopword removal and an integer-indexed document collection.
+- **lda** - collapsed Gibbs sampling with topic-word and document-topic queries.
+- **data** - a themed document collection.
+- **evaluation** - UMass topic coherence from the training documents.
 
 ## Results
 
@@ -82,7 +87,7 @@ corpus grows. Run with `uv run python benchmarks/scale.py`.
 | 800 | 4.85 | 165.0 | 0.73 | -4.242 |
 | 1600 | 6.39 | 250.5 | 1.46 | -4.286 |
 
-Honest caveat: the documents are synthetic with three clear themes, and this pure-Python
+Honest caveat: the documents are synthetic with three clear themes, and this Python
 implementation is not benchmarked against compiled topic-model libraries.
 
 ## Quickstart
@@ -107,9 +112,11 @@ model.train()
 print(model.topic_words(0, k=8))
 ```
 
-## Running the service
+## Usage
 
-A dependency-free HTTP service trains the model once at startup and serves topic queries:
+### HTTP service
+
+A standard-library HTTP service trains the model once at startup and serves topic queries:
 
 ```bash
 python -m topic_model_lda serve --port 8000
@@ -126,19 +133,28 @@ error, and latency metrics in Prometheus text format). A production-style stress
 scaling path and tradeoffs are in [docs/SCALING.md](docs/SCALING.md) and a full walk-through
 is in the [case study](docs/CASE_STUDY.md).
 
-## Components
-
-- **corpus** - tokenization with stopword removal and an integer-indexed document collection.
-- **lda** - collapsed Gibbs sampling with topic-word and document-topic queries.
-- **data** - a themed document collection.
-- **evaluation** - UMass topic coherence from the training documents.
-
 ## Design decisions
 
 - **Collapsed Gibbs sampling.** Integrating out the distributions lets inference run on integer
   counts, which is simple and mixes well. ([ADR-0002](docs/adr/0002-collapsed-gibbs.md))
 - **Intrinsic coherence, no external corpus.** UMass coherence is computed from the training
   documents, so evaluation is self-contained. ([ADR-0003](docs/adr/0003-intrinsic-coherence.md))
+
+## Testing
+
+```bash
+make lint        # ruff format --check and ruff check
+make type        # mypy src (strict)
+make test        # pytest
+make coverage    # pytest with an 80% coverage gate
+```
+
+The suite in `tests/` has 14 tests:
+
+- `test_core.py`: tokenization (stopwords, Unicode, digits, underscores), corpus indexing, configuration validation, recovery of coherent topics on the themed collection, document-topic mixtures summing to one, and coherence computation.
+- `test_service.py`: the HTTP routes through the handler layer (no socket), inference assigning the dominant topic, rejection of empty input, normalization on long documents, metrics, and unknown routes.
+
+CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.11 and 3.12, then builds the package and the Docker image. CodeQL runs in `codeql.yml`.
 
 ## Responsible AI
 
@@ -149,7 +165,7 @@ is in the [case study](docs/CASE_STUDY.md).
 ## Limitations
 
 - The number of topics is a hyperparameter, not inferred; nonparametric variants learn it.
-- Training is pure Python, suited to learning and modest collections.
+- Training runs in interpreted Python, suited to learning and modest collections.
 - The bundled documents are synthetic with clear themes; real text is messier.
 
 ## Roadmap
@@ -160,5 +176,4 @@ is in the [case study](docs/CASE_STUDY.md).
 
 ## License
 
-[MIT](LICENSE). Part of an artificial intelligence engineering portfolio by
-[adeoluo](https://github.com/adeoluo).
+Released under the [MIT License](LICENSE).

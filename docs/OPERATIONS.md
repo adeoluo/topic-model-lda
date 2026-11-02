@@ -8,7 +8,7 @@ The operational contract of the topic service.
 uv run python -m topic_model_lda serve --host 0.0.0.0 --port 8000
 ```
 
-A standard-library HTTP server with **zero runtime dependencies**. The model is trained once at
+A standard-library HTTP server. The model is trained once at
 startup and then serves stateless queries.
 
 ## Endpoints

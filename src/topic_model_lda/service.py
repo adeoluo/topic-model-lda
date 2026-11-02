@@ -1,4 +1,4 @@
-"""A dependency-free HTTP service exposing the trained topic model.
+"""A standard-library HTTP service exposing the trained topic model.
 
 The service trains LDA once at startup over the bundled documents and then serves
 the discovered topics, infers topics for a new document, and reports coherence. A

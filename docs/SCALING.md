@@ -13,7 +13,7 @@ seed.
 | Stage | Bottleneck | Change |
 |---|---|---|
 | One process | Infer CPU, global interpreter lock | One replica per core |
-| Large collection | Pure-Python Gibbs sampling | Train offline; load counts; sparse sampling |
+| Large collection | Interpreted-Python Gibbs sampling | Train offline; load counts; sparse sampling |
 | Many topics | Per-token sampling cost | Sparse or alias-method sampling |
 | Streaming documents | Batch training | Online variational inference |
 | Many replicas | Repeated startup training | Train once; ship the model as an artifact |

@@ -11,7 +11,7 @@ topic from its full conditional, which depends on the current counts:
 
 where n_dk counts topic k in document d, n_kw counts word w in topic k, and n_k
 counts all words in topic k. After sampling converges, the counts give the
-topic-word and document-topic distributions. Everything is pure Python.
+topic-word and document-topic distributions.
 """
 
 from __future__ import annotations

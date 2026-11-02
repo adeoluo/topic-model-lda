@@ -1,45 +1,10 @@
----
-title: System Architecture - Topic Model (LDA)
-config:
-  theme: base
-  themeVariables:
-    fontFamily: "Inter, system-ui, sans-serif"
-    primaryColor: "#F8FAFC"
-    primaryBorderColor: "#1E293B"
-    primaryTextColor: "#1E293B"
-    lineColor: "#64748B"
-    clusterBkg: "#EEF2FF"
-    clusterBorder: "#94A3B8"
----
-flowchart TB
-    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
-    classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
-
-    Client([Client]):::edge
-
-    subgraph Train["Collapsed Gibbs sampling (startup)"]
-        direction TB
-        Docs[(Document collection)]:::data
-        Assign["Token topic assignments<br/>resampled from full conditional"]:::core
-        Counts["Topic-word and document-topic counts"]:::core
-    end
-
-    subgraph Edge["Service layer (stdlib HTTP, stateless)"]
-        direction TB
-        Router["Router<br/>/health | /ready | /metrics | /topics | /evaluate | /infer"]:::core
-        Validate["Validation<br/>bounded text"]:::control
-    end
-
-    Coherence[UMass coherence]:::core
-    Result["Topics / document distribution"]:::obs
-
-    Docs --> Assign --> Counts
-    Counts -.-> Coherence
-    Client -->|JSON request| Router --> Validate
-    Validate -->|document| Counts
-    Counts -->|topic distribution| Result
-    Coherence --> Result
-    Result --> Router -->|JSON response| Client
+flowchart LR
+    Texts[(Documents)] --> Corpus[Tokenize and index]
+    Corpus --> Init[Random topic per token]
+    Init --> Gibbs[Collapsed Gibbs sweeps]
+    Gibbs <--> Counts[(Topic and document counts)]
+    Counts --> Topics[Topic words]
+    Counts --> Coherence[UMass coherence]
+    Client([Client]) --> Router[HTTP router]
+    Router --> Infer[Infer document topics]
+    Counts --> Infer

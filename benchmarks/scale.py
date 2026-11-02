@@ -10,8 +10,8 @@ Timing is measured without tracemalloc (which otherwise slows every allocation);
 peak memory is traced separately around the corpus, the model construction, and
 a single sweep, which is faithful because the token assignments and count
 matrices are allocated up front and reused each iteration rather than growing.
-The documents are synthetic, drawn from three clear themes. This pure-Python
-from-scratch implementation is not competitive on wall-clock time with compiled
+The documents are synthetic, drawn from three clear themes. This from-scratch Python
+implementation is not competitive on wall-clock time with compiled
 topic-model libraries; the goal is to show how Gibbs sampling scales with the
 number of documents. Deterministic and offline; run with:
 
@@ -93,7 +93,7 @@ def run_scale(sizes: tuple[int, ...] = WORKLOAD_SIZES) -> list[ScaleRow]:
 
 def main() -> None:
     print("Synthetic three-theme documents; from-scratch collapsed Gibbs LDA.")
-    print("Pure-Python sampling; not benchmarked against compiled topic-model libraries.")
+    print("Interpreted-Python sampling; not benchmarked against compiled topic-model libraries.")
     print(f"{'documents':>10}  {'seconds':>9}  {'docs/sec':>9}  {'peak MiB':>9}  {'coherence':>10}")
     for row in run_scale():
         print(

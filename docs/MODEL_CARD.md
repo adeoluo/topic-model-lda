@@ -15,7 +15,7 @@
 
 ## Out-of-scope / prohibited use
 
-- Not for web-scale collections (pure-Python sampling).
+- Not for web-scale collections (sampling runs in interpreted Python).
 - The number of topics must be chosen.
 
 ## Performance
