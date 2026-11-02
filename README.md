@@ -28,10 +28,15 @@ only inference primitive is sampling a token's topic from its full conditional.
   <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
-Every word token starts with a random topic. Collapsed Gibbs sampling repeatedly resamples
-each token's topic from its full conditional, which depends only on the current topic-word
-and document-topic counts. After convergence those counts give the topics and the per-document
-topic mixtures. See the [ADRs](docs/adr/) for the key decisions.
+<sub>Legend: amber = entry points and external systems, indigo = core logic, green = data and state, blue = validation and control, grey = observability and outputs.</sub>
+
+The bundled documents are tokenized into an integer-indexed corpus, and every word token
+starts with a random topic. Collapsed Gibbs sampling repeatedly resamples each token's topic
+from its full conditional, which depends only on the current topic-word and document-topic
+counts. After convergence those counts give the topics and the per-document topic mixtures;
+the service reads them to list top words and to infer topics for a validated new document,
+UMass coherence scores the topics, and every route is counted in the Prometheus metrics. See
+the [ADRs](docs/adr/) for the key decisions.
 
 ### How collapsed Gibbs sampling works
 

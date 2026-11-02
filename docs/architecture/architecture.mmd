@@ -1,10 +1,59 @@
 flowchart LR
-    Texts[(Documents)] --> Corpus[Tokenize and index]
-    Corpus --> Init[Random topic per token]
-    Init --> Gibbs[Collapsed Gibbs sweeps]
-    Gibbs <--> Counts[(Topic and document counts)]
-    Counts --> Topics[Topic words]
-    Counts --> Coherence[UMass coherence]
-    Client([Client]) --> Router[HTTP router]
-    Router --> Infer[Infer document topics]
-    Counts --> Infer
+    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+    classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+
+    CLI(["CLI<br/>topics | evaluate | serve"]):::edge
+    Client(["HTTP client"]):::edge
+
+    subgraph Data["Corpus and config (bundled, seeded)"]
+        direction TB
+        Docs[("60 documents<br/>space, cooking, finance themes")]:::data
+        Tokenize["Tokenizer<br/>word tokens, stopwords removed"]:::core
+        Config["LDA config<br/>K topics, alpha, beta, iterations"]:::control
+    end
+
+    subgraph Train["Collapsed Gibbs sampling (once at startup)"]
+        direction TB
+        Init["Random initialization<br/>one topic per token"]:::core
+        Counts[("Count tables<br/>n_dk, n_kw, n_k")]:::data
+        Gibbs["Gibbs sweep<br/>resample each token from its full conditional"]:::core
+    end
+
+    subgraph Edge["Interfaces (stdlib HTTP)"]
+        direction TB
+        Router["Router<br/>/health | /ready | /topics | /evaluate | /infer"]:::core
+        Validate["Validation<br/>non-empty text, length cap"]:::control
+    end
+
+    subgraph Query["Model queries (read the counts)"]
+        direction TB
+        Topics["Topic top words<br/>highest n_kw per topic"]:::core
+        Infer["Document inference<br/>log-space scores, log-sum-exp"]:::core
+    end
+
+    subgraph Eval["Evaluation and observability"]
+        direction TB
+        Coherence["UMass coherence<br/>per topic and mean"]:::obs
+        Metrics["Route metrics<br/>Prometheus GET /metrics"]:::obs
+    end
+
+    CLI -->|train| Init
+    Docs -->|texts| Tokenize
+    Tokenize -->|integer-indexed corpus| Init
+    Config -.->|K, alpha, beta, iterations| Gibbs
+    Init -->|initial counts| Counts
+    Counts -.->|current counts| Gibbs
+    Gibbs -->|reassigned topics| Counts
+    Client -->|JSON request| Router
+    Router -->|POST /infer| Validate
+    Validate -->|text| Infer
+    Router -->|GET /topics| Topics
+    Counts -.->|topic-word counts| Topics
+    Counts -.->|topic-word counts| Infer
+    Router -->|GET /evaluate| Coherence
+    Topics -->|top words| Coherence
+    Tokenize -.->|co-document frequencies| Coherence
+    Router -.-> Metrics
