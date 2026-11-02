@@ -1,0 +1,40 @@
+# Topic Model (LDA)
+
+> Latent Dirichlet allocation, built from scratch: collapsed Gibbs sampling for topic discovery, with a Rust core that reproduces the Python sampler exactly, and UMass topic-coherence evaluation.
+
+Languages: Python, Rust. License: MIT. Source: https://github.com/adeoluo/topic-model-lda
+
+## Docs
+
+- [README](https://github.com/adeoluo/topic-model-lda/blob/main/README.md): motivation, architecture, results, quickstart, usage, design decisions, testing, responsible ai, limitations, roadmap
+- [AGENTS.md](https://github.com/adeoluo/topic-model-lda/blob/main/AGENTS.md): layout, commands and conventions for changing the code
+- [Architecture diagram](https://github.com/adeoluo/topic-model-lda/blob/main/docs/architecture/architecture.mmd): Mermaid source of the component diagram
+- [End-to-End Case Study - Discovering Themes Without Labels](https://github.com/adeoluo/topic-model-lda/blob/main/docs/CASE_STUDY.md)
+- [Data Card - Topic Model (LDA)](https://github.com/adeoluo/topic-model-lda/blob/main/docs/DATA_CARD.md)
+- [Definition of Done](https://github.com/adeoluo/topic-model-lda/blob/main/docs/DEFINITION_OF_DONE.md)
+- [Evaluation Report - Topic Model (LDA)](https://github.com/adeoluo/topic-model-lda/blob/main/docs/EVALUATION_REPORT.md)
+- [System Card - Topic Model (LDA)](https://github.com/adeoluo/topic-model-lda/blob/main/docs/MODEL_CARD.md)
+- [Operations Guide - Topic Model (LDA)](https://github.com/adeoluo/topic-model-lda/blob/main/docs/OPERATIONS.md)
+- [Scaling and Design Tradeoffs - Topic Model (LDA)](https://github.com/adeoluo/topic-model-lda/blob/main/docs/SCALING.md)
+- [Threat Model - Topic Model (LDA)](https://github.com/adeoluo/topic-model-lda/blob/main/docs/THREAT_MODEL.md)
+- [ADR-0001: Record architecture decisions](https://github.com/adeoluo/topic-model-lda/blob/main/docs/adr/0001-record-architecture-decisions.md)
+- [ADR-0002: Collapsed Gibbs sampling for inference](https://github.com/adeoluo/topic-model-lda/blob/main/docs/adr/0002-collapsed-gibbs.md)
+- [ADR-0003: Intrinsic topic coherence for evaluation](https://github.com/adeoluo/topic-model-lda/blob/main/docs/adr/0003-intrinsic-coherence.md)
+- [ADR 0004: A Rust core that reproduces the Python sampler exactly](https://github.com/adeoluo/topic-model-lda/blob/main/docs/adr/0004-rust-core-exact-reproduction.md)
+- [ADR-NNNN: <short title>](https://github.com/adeoluo/topic-model-lda/blob/main/docs/adr/template.md)
+- [Changelog](https://github.com/adeoluo/topic-model-lda/blob/main/CHANGELOG.md): release history
+
+## Source
+
+- [rust/src/gibbs.rs](https://github.com/adeoluo/topic-model-lda/blob/main/rust/src/gibbs.rs): Collapsed Gibbs sampling, step for step the same as the Python sampler.
+- [rust/src/lib.rs](https://github.com/adeoluo/topic-model-lda/blob/main/rust/src/lib.rs): Rust core of topic-model-lda: collapsed Gibbs sampling for latent Dirichlet allocation.
+- [rust/src/mt.rs](https://github.com/adeoluo/topic-model-lda/blob/main/rust/src/mt.rs): CPython's `random.Random`: MT19937 with `init_by_array` seeding.
+- [rust/src/python.rs](https://github.com/adeoluo/topic-model-lda/blob/main/rust/src/python.rs): PyO3 bindings, built by maturin into the `topic_model_lda_rs` extension module.
+- [src/topic_model_lda/__init__.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/__init__.py): Topic Model LDA - latent Dirichlet allocation with collapsed Gibbs sampling.
+- [src/topic_model_lda/cli.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/cli.py): Command line interface for the LDA topic model.
+- [src/topic_model_lda/corpus.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/corpus.py): Corpus types: tokenization and an integer-indexed document collection.
+- [src/topic_model_lda/data.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/data.py): A bundled document collection with latent themes for demonstration.
+- [src/topic_model_lda/evaluation.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/evaluation.py): Topic-coherence evaluation.
+- [src/topic_model_lda/lda.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/lda.py): Latent Dirichlet allocation with collapsed Gibbs sampling, from scratch.
+- [src/topic_model_lda/observability.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/observability.py): In-process request metrics for the HTTP service (Prometheus text exposition).
+- [src/topic_model_lda/service.py](https://github.com/adeoluo/topic-model-lda/blob/main/src/topic_model_lda/service.py): A standard-library HTTP service exposing the trained topic model.

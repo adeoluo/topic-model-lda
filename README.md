@@ -1,13 +1,14 @@
 <h1 align="center">Topic Model (LDA)</h1>
 
 <p align="center">
-  <em>Latent Dirichlet allocation, built from scratch: collapsed Gibbs sampling for topic discovery, with UMass topic-coherence evaluation.</em>
+  <em>Latent Dirichlet allocation, built from scratch: collapsed Gibbs sampling for topic discovery, with a Rust core that reproduces the Python sampler exactly, and UMass topic-coherence evaluation.</em>
 </p>
 
 <p align="center">
   <a href="https://github.com/adeoluo/topic-model-lda/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/adeoluo/topic-model-lda/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/adeoluo/topic-model-lda/releases"><img alt="Release" src="https://img.shields.io/github/v/release/adeoluo/topic-model-lda"></a>
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12-blue">
+  <img alt="Rust" src="https://img.shields.io/badge/rust-core-B7410E">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
@@ -73,6 +74,64 @@ topic 2: portfolio, price, trade, bank, stock, profit
 Each discovered topic is dominated by a single theme, and every theme is recovered as a
 separate topic - with no supervision. Topic coherence is reported by
 `python -m topic_model_lda evaluate` (UMass; higher, closer to zero, is better).
+
+### Real web text (C4) and the Rust core
+
+> Reproduce with `make rust-develop`, download one C4 shard
+> (`https://huggingface.co/datasets/allenai/c4/resolve/main/en/c4-train.00000-of-01024.json.gz`),
+> then `uv run --no-sync --with gensim python benchmarks/compare_backends.py --c4 <shard> --gensim`.
+> Apple M1, 8 cores. Documents are the first C4 English documents, truncated to 300 words, with
+> rare and near-universal words pruned. Raw numbers: [benchmarks/results.json](benchmarks/results.json).
+
+The optional Rust core draws from a port of CPython's Mersenne Twister and totals the weights the
+way the running interpreter's `sum()` does, so it produces the same topic assignments as the Python
+sampler, token for token. The parity tests check this in CI.
+
+| Sampler | Documents | Tokens | Sweeps | Time | Tokens per second | Same assignments |
+|---|---:|---:|---:|---:|---:|:---:|
+| Python | 1,000 | 108,767 | 5 | 1.6 s | 344,298 | yes |
+| Rust | 1,000 | 108,767 | 5 | 0.04 s | 12,634,177 (**37x**) | yes |
+
+At scale, the Rust sampler trains 20 topics on 20,000 C4 documents
+(15,726 words, 2,347,084 tokens) for 100
+sweeps in 17.4 seconds. Against gensim, the most widely used Python LDA library,
+on the same documents and vocabulary, with every model's top eight words scored by the same UMass
+function:
+
+| Library | Algorithm | Train time | Mean UMass (top 8, higher is better) |
+|---|---|---:|---:|
+| **topic-model-lda, Rust** | collapsed Gibbs, 100 sweeps | **17.4 s** | -53.55 |
+| gensim LdaModel, 1 process | online variational Bayes, 10 passes | 36.7 s | -56.78 |
+| gensim LdaMulticore, 7 workers | online variational Bayes, 10 passes | 26.9 s | **-47.93** |
+
+The Rust sampler is the fastest of the three and more coherent than single-process gensim, but
+multicore gensim reaches better coherence at these settings. The Rust sampler runs on one core;
+the Gibbs chain is sequential by construction, which is what makes the exact reproduction possible.
+
+The learned topics (top eight words):
+
+```text
+topic  0: 1 year 2 5 3 4 10 6
+topic  1: he his her she who him life family
+topic  2: home room house hotel area space design table
+topic  3: food add into water wine until make cream
+topic  4: skin body water health treatment used energy which
+topic  5: our music up their day love new great
+topic  6: data which its these market technology system new
+topic  7: they if what do t when there their
+topic  8: car insurance if property vehicle get available road
+topic  9: he his said had were their after who
+topic 10: made black size set color x white back
+topic 11: school students their university program our education training
+topic 12: game 1 video 2 mobile app new software
+topic 13: i my t so me what about just
+topic 14: our online business free design get best marketing
+topic 15: book m d de new p 2019 art
+topic 16: our services service us quality work care provide
+topic 17: its city world south which many also north
+topic 18: if any information use please may site other
+topic 19: its business government company law public their financial
+```
 
 ### Scale
 
@@ -162,6 +221,10 @@ Topics and coherence from the service, and its request metrics.
 
 ## Design decisions
 
+- **A Rust core that reproduces the Python sampler exactly.** Gibbs sampling is a long
+  sequential loop over tokens, which interpreted Python runs slowly. The Rust core ports
+  CPython's random number generator and summation so the two produce identical topic
+  assignments, checked in CI. ([ADR-0004](docs/adr/0004-rust-core-exact-reproduction.md))
 - **Collapsed Gibbs sampling.** Integrating out the distributions lets inference run on integer
   counts, which is simple and mixes well. ([ADR-0002](docs/adr/0002-collapsed-gibbs.md))
 - **Intrinsic coherence, no external corpus.** UMass coherence is computed from the training
@@ -176,12 +239,17 @@ make test        # pytest
 make coverage    # pytest with an 80% coverage gate
 ```
 
-The suite in `tests/` has 14 tests:
+The suite in `tests/` has the following tests:
 
 - `test_core.py`: tokenization (stopwords, Unicode, digits, underscores), corpus indexing, configuration validation, recovery of coherent topics on the themed collection, document-topic mixtures summing to one, and coherence computation.
+- `test_rust_parity.py`: the Rust sampler's topic assignments, topic-word counts, and
+  document-topic mixtures equal the Python sampler's for several seeds (including a seed
+  wider than 32 bits), topic counts, and hyperparameters, before and after training.
 - `test_service.py`: the HTTP routes through the handler layer (no socket), inference assigning the dominant topic, rejection of empty input, normalization on long documents, metrics, and unknown routes.
 
-CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.11 and 3.12, then builds the package and the Docker image. CodeQL runs in `codeql.yml`.
+CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.11 and 3.12, then builds the package and the Docker image. A separate job runs `cargo fmt`, `clippy`, and
+`cargo test`, builds the extension, and runs the parity tests with the extension required.
+CodeQL runs in `codeql.yml`.
 
 ## Responsible AI
 
@@ -192,13 +260,16 @@ CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-
 ## Limitations
 
 - The number of topics is a hyperparameter, not inferred; nonparametric variants learn it.
-- Training runs in interpreted Python, suited to learning and modest collections.
+- The Python sampler is interpreted and suited to modest collections; the Rust core is 37x
+  faster but still single threaded, and multicore gensim reaches better coherence on C4.
 - The bundled documents are synthetic with clear themes; real text is messier.
 
 ## Roadmap
 
 - [ ] Hyperparameter estimation for alpha and beta
 - [ ] Perplexity on held-out documents alongside coherence
+- [x] A compiled sampler (Rust core, identical results to the Python sampler).
+- [ ] A parallel approximate sampler (AD-LDA) for multi-core training.
 - [ ] Online variational inference for larger collections
 
 ## License
