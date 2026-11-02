@@ -16,7 +16,7 @@
 | Unbounded computation | Very long document | Resource use | Text length-bounded |
 | Irreproducible training | Unseeded sampling | Flaky topics | Deterministic, seeded Gibbs sampling |
 | Misleading topics | Noisy or tiny corpus | Incoherent topics | Coherence is reported, not hidden |
-| Supply-chain compromise | Malicious dependency | Code execution | No third-party runtime packages; Dependabot and CodeQL in continuous integration |
+| Supply-chain compromise | Malicious dependency | Code execution | No third-party Python runtime packages; the Rust sampler's PyO3 dependency is pinned by `rust/Cargo.lock` and development tools by `uv.lock`; CodeQL in continuous integration |
 
 ## Residual risk
 
