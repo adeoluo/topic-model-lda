@@ -1,0 +1,25 @@
+[package]
+name = "topic-model-lda-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Rust core of topic-model-lda: collapsed Gibbs sampling for LDA, reproducing the Python sampler exactly"
+license = "MIT"
+authors = ["Adeolu Ogunnoiki"]
+repository = "https://github.com/adeoluo/topic-model-lda"
+publish = false
+
+[lib]
+name = "topic_model_lda_rs"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+# Enabled by maturin (see pyproject.toml); plain `cargo test` needs no Python.
+python = ["dep:pyo3"]
+
+[dependencies]
+pyo3 = { version = "0.30", optional = true, features = ["abi3-py311"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
