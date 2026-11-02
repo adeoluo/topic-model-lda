@@ -1,6 +1,6 @@
 [project]
 name = "topic-model-lda"
-version = "0.1.0"
+version = "0.2.0"
 description = "Latent Dirichlet allocation from scratch: collapsed Gibbs sampling for topic modeling with topic-coherence evaluation"
 readme = "README.md"
 requires-python = ">=3.11"

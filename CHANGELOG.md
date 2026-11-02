@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The file is generated
 from Conventional Commits by [git-cliff](https://git-cliff.org) when a release is cut
 with `make cut-release`.
 
+## [0.2.0] 2026-11-02
+
+### Features
+
+- Build the Rust sampler into the package (#4)
+
 ## [0.1.0] 2026-11-02
 
 ### Features
