@@ -138,6 +138,16 @@ error, and latency metrics in Prometheus text format). A production-style stress
 scaling path and tradeoffs are in [docs/SCALING.md](docs/SCALING.md) and a full walk-through
 is in the [case study](docs/CASE_STUDY.md).
 
+### Demos
+
+Recorded from real runs with [vhs](https://github.com/charmbracelet/vhs); each tape is in `docs/demo/`.
+
+Topics discovered by collapsed Gibbs sampling, and their coherence.
+
+<p align="center">
+  <img src="docs/demo/topics.gif" alt="Topics discovered by collapsed Gibbs sampling, and their coherence" width="860">
+</p>
+
 ## Design decisions
 
 - **Collapsed Gibbs sampling.** Integrating out the distributions lets inference run on integer
