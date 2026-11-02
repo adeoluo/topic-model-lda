@@ -28,3 +28,9 @@ Port the sampler to Rust (`rust/`), exposed through `LDAConfig(backend=...)`:
 * The parity tests compare assignments and counts token for token, so any divergence fails CI.
 * 37x faster on C4 text. The chain stays sequential: a parallel sampler would be faster on
   multi-core machines but could not match the Python sampler, so it is a separate roadmap item.
+
+## Update: the Rust core is compiled into every install
+
+The package now builds with maturin, so installing it compiles the Rust sampler into the
+package and `backend="auto"`, the default, always uses it. The Python sampler stays as the
+reference the parity tests compare against.
