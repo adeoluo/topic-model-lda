@@ -148,6 +148,18 @@ Topics discovered by collapsed Gibbs sampling, and their coherence.
   <img src="docs/demo/topics.gif" alt="Topics discovered by collapsed Gibbs sampling, and their coherence" width="860">
 </p>
 
+The HTTP service inferring the topic mix of two new documents.
+
+<p align="center">
+  <img src="docs/demo/http.gif" alt="The HTTP service inferring the topic mix of two new documents" width="860">
+</p>
+
+Topics and coherence from the service, and its request metrics.
+
+<p align="center">
+  <img src="docs/demo/http-topics.gif" alt="Topics and coherence from the service, and its request metrics" width="860">
+</p>
+
 ## Design decisions
 
 - **Collapsed Gibbs sampling.** Integrating out the distributions lets inference run on integer
