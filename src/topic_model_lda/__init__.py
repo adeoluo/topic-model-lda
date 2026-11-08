@@ -7,7 +7,7 @@ from topic_model_lda.data import documents, theme_words
 from topic_model_lda.evaluation import CoherenceReport, topic_coherence
 from topic_model_lda.lda import LDA, LDAConfig
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "LDA",
