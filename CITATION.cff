@@ -1,10 +1,22 @@
 cff-version: 1.2.0
-message: "If you use this work, please cite it."
-title: "Topic Model Lda"
+message: "If you use this software, please cite it as below."
+type: software
+title: "Topic Model (LDA)"
+abstract: "Latent Dirichlet allocation from scratch: collapsed Gibbs sampling with a Rust sampler that reproduces the Python one exactly, and UMass topic-coherence evaluation; faster than gensim on C4."
 authors:
   - family-names: "Ogunnoiki"
     given-names: "Adeolu"
-version: 0.1.0
-date-released: 2026-01-01
+version: "0.2.0"
+date-released: "2026-11-02"
 license: MIT
+repository-code: "https://github.com/adeoluo/topic-model-lda"
 url: "https://github.com/adeoluo/topic-model-lda"
+keywords:
+  - "bayesian"
+  - "from-scratch"
+  - "gibbs-sampling"
+  - "latent-dirichlet-allocation"
+  - "nlp"
+  - "python"
+  - "topic-modeling"
+  - "unsupervised-learning"
