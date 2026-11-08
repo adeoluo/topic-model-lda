@@ -1,7 +1,7 @@
 [package]
 name = "topic-model-lda-rs"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Rust core of topic-model-lda: collapsed Gibbs sampling for LDA, reproducing the Python sampler exactly"
 license = "MIT"
 authors = ["Adeolu Ogunnoiki"]
@@ -18,7 +18,7 @@ default = []
 python = ["dep:pyo3"]
 
 [dependencies]
-pyo3 = { version = "0.30", optional = true, features = ["abi3-py311"] }
+pyo3 = { version = "0.30.1", optional = true, features = ["abi3-py312"] }
 
 [profile.release]
 lto = true
