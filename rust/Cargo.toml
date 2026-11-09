@@ -1,6 +1,6 @@
 [package]
 name = "topic-model-lda-rs"
-version = "0.1.0"
+version = "0.2.1"
 edition = "2024"
 description = "Rust core of topic-model-lda: collapsed Gibbs sampling for LDA, reproducing the Python sampler exactly"
 license = "MIT"
